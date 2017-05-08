@@ -1,0 +1,287 @@
+gather big data for training write kafka producer with at least 1 y.o. \
+ reddit posts from subreddits [RLanguage,Python]
+        #rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+        # text_of_post:t
+        # (k,cf,q,value) hbase record
+        # k = f'{post_day_start_utc}|
+        convert posts into {'k':postpost.id,'cf':'d','q':'m',\
+         'value':[features,targets]}
+        convert posts also into post body for wordcounting \
+         {'k':post.id,'cf':'d','q':'t','value':text_of_post}
+    
+train on historical data and save model to use in streaming
+    model : http://people.apache.org/~pwendell/spark-nightly/spark-master-docs/\
+     spark-2.3.0-SNAPSHOT-2017_04_29_16_01-d228cd0-docs/\
+     mllib-ensembles.html#gradient-boosted-trees-gbts
+    use hbase ml_ready_data, see HBaseInputFormat.scala
+    save model in aws s3 bucket
+
+predict targets for reddit post from upstream
+    load trained model from aws s3 bucket
+    setup ingestion from kafka stream
+    make prediction
+    add prediction in new hbase record
+
+
+python from praw to kafka streaming of historical data
+    use controversial method for subreddit with filter 'all'
+    produce to kafka topic 'ml_historical_data' following map in json format
+        subreddit letter (R|P)
+        seconds till the start of the post day in utc
+        postid
+        post_title
+        link_to_post
+        features
+            title_len = len(post.title)
+			title_num_tokens = len(post.title.split())
+			body_len = len(post.selftext)
+			body_num_tokens = len(post.selftext.split())
+			post_time = post.created_utc
+			post_weekday = datetime.utcfromtimestamp(post_time).weekday()
+			post_month = datetime.utcfromtimestamp(post_time).month
+			post_over18 = post.over_18
+		targets
+			target1 = post.num_comments
+			target2 = post.ups
+			target3 = post.downs
+
+	produce to kafka topic 'word_counting_historical_data'
+		subreddit letter (R|P)
+		seconds till the start of the post day in utc
+		postid
+		post_body
+		post_title
+	
+pyspark from kafka to hbase processing of historical data
+	process 'ml_historical_data'
+   		just save it to hbase table 'historical_reddit' as following record
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# general_info:g
+			# (k,cf,q,value) hbase record
+			convert posts into 
+			 {
+			 'k':f'M{subreddit}{day secs utc}{post.id}',
+			 'cf':'d',
+			 'q':'m',
+			 'value':[features,targets]
+			 }
+			 {
+			 'k':f'M{subreddit}{day secs utc}{post.id}',
+			 'cf':'d',
+			 'q':'g',
+			 'value':{
+			  'title':post_title,
+			  'link':link_to_post
+			  }
+			 }
+ 	process 'word_counting_historical_data'
+		convert batch of stream data for further saving into hbase
+			tokenize post_body,post_title
+			flatMap to pairs 
+			 (
+			 (f'W{subreddit}{day secs utc}{token}',token),
+			 1
+			 )
+			reduceByKey to sum count word in current batch
+		just INCREMENT in hbase table 'historical_reddit' the following value
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# counter_of_words:c
+			# (k,cf,q,value) hbase record
+			# k = f'{post_day_start_utc}|
+			convert reduced pairs into 
+			 Increment(ENTRY[0][0])
+			 addColumn(
+			 'cf':'d',
+			 'q':'c',
+			 'amount':ENTRY[1]
+			 )
+		also just insert in hbase table 'historical_reddit' the following record
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# word_string:w
+			# (k,cf,q,value) hbase record
+			{
+			 'k':f'{ENTRY[0][0]}',
+			 'cf':'d',
+			 'q':'w',
+			 'value':ENTRY[0][1]
+			}
+	
+python from praw subreddit submissions to kafka streaming
+	use subreddit().stream.submissions generator to get new posts
+	produce to kafka topic 'ml_upstream_data' following map in json format
+        subreddit letter (R|P)
+        seconds till the start of the post day in utc
+        postid
+        post_title
+        link_to_post
+        features
+            title_len = len(post.title)
+			title_num_tokens = len(post.title.split())
+			body_len = len(post.selftext)
+			body_num_tokens = len(post.selftext.split())
+			post_time = post.created_utc
+			post_weekday = datetime.utcfromtimestamp(post_time).weekday()
+			post_month = datetime.utcfromtimestamp(post_time).month
+			post_over18 = post.over_18
+		targets
+			target1 = post.num_comments
+			target2 = post.ups
+			target3 = post.downs
+
+	produce to kafka topic 'word_counting_upstream_data'
+		subreddit letter (R|P)
+		seconds till the start of the post day in utc
+		postid
+		post_body
+		post_title
+
+python from kafka to hbase processing of upstream data
+	process 'ml_upstream_data'
+		load once trained ml model from aws s3 bucket
+		predict targets from post features
+   		just save it to hbase table 'upstream_reddit' as following record
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# general_info:g
+			# predicted_targets:p
+			# (k,cf,q,value) hbase record
+			convert posts into 
+			 {
+			 'k':f'M{subreddit}{day secs utc}{post.id}',
+			 'cf':'d',
+			 'q':'m',
+			 'value':[features,targets]
+			 }
+			 {
+			 'k':f'M{subreddit}{day secs utc}{post.id}',
+			 'cf':'d',
+			 'q':'p',
+			 'value':predicted_targets
+			 }
+			 {
+			 'k':f'M{subreddit}{day secs utc}{post.id}',
+			 'cf':'d',
+			 'q':'g',
+			 'value':{
+			  'title':post_title,
+			  'link':link_to_post
+			  }
+			 }
+ 	process 'word_counting_upstream_data'
+		convert batch of stream data for further saving into hbase
+			tokenize post_body,post_title
+			flatMap to pairs 
+			 (
+			 (f'W{subreddit}{day secs utc}{token}',token),
+			 1
+			 )
+			reduceByKey to sum count word in current batch
+		just INCREMENT in hbase table 'upstream_reddit' the following value
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# counter_of_words:c
+			# (k,cf,q,value) hbase record
+			# k = f'{post_day_start_utc}|
+			convert reduced pairs into 
+			 Increment(ENTRY[0][0])
+			 addColumn(
+			 'cf':'d',
+			 'q':'c',
+			 'amount':ENTRY[1]
+			 )
+		also just insert in hbase table 'upstream_reddit' the following record
+			#rowkey:k,columnfamily:cf,data:d,quilifier:q,ml_ready_data:m
+			# word_string:w
+			# (k,cf,q,value) hbase record
+			{
+			 'k':f'{ENTRY[0][0]}',
+			 'cf':'d',
+			 'q':'w',
+			 'word':ENTRY[0][1]
+			}
+
+python from hbase show in ui word_counting and ml_predictions
+	entry point contains link to historical and upstream
+	historical
+		day selector and go button
+		table view with schema (word, counter )
+			subreddit R
+			subreddit P
+	upstream	
+		table view with schema (word, counter)
+			subreddit R
+			subreddit P
+		table view with schema (general_info,features,targets,predicted_targets)
+			subreddit R
+			subreddit P
+
+python write bokeh server app
+	layout:
+		tab 'historical'
+			datepicker
+			data_table with schema (subreddit,word, counter)
+		tab 'upstream'
+			data_table with schema (subreddit,word,counter)
+			data_table with schema (
+			 subreddit,general_info,features,targets,predicted_targets)
+	separate thread with sleep(5s) update fetch data from hbase
+	datepicker callback runs in separate thread fetching data from hbase
+		
+	
+open web-app to world wide web
+	open external port 80
+	open internal port to hbase master
+	setup nginx to serve bokeh app along with ws
+		nginx_bokeh_proxy.conf
+	build bokeh python package from scratch
+		git clone --depth=50 https://github.com/bokeh/bokeh.git bokeh/bokeh
+		checkout 82a2a28
+		nvm install
+		nvm install v7.9.0
+		nvm use v7.9.0
+		cd bokehjs
+		npm install
+		cd ..
+		python3 setup.py --build-js build
+		pip3 uninstall bokeh
+		python3 setup.py --build-js install
+	run bokeh server
+		python3 -m bokeh serve  --port 5100 --log-level debug
+		 --address 127.0.0.1 --allow-websocket-origin=127.0.0.1:9000 
+		 {{project directory}}
+
+Architecture overview:
+	browser
+	nginx
+	bokeh
+	hbase
+	spark
+	kafka
+	reddit
+
+Global:
+	maraphon've started at 1493743008
+	hbase
+		seed locally 1493748995
+	bokeh
+		test locally 1493769091
+	nginx
+		test locally 1493769366
+	nginx
+		test ec2  1493774414
+	hbase
+		seed ec2 1493774425
+	bokeh
+		test ec2 1493774434
+	reddit to kafka
+		test locally  1493804314
+	kafka to spark 1493827633
+		test locally
+	spark to hbase 
+		test locally 1493916515
+	reddit to kafka
+		test ec2
+	kafka to spark
+		test ec2
+	spark to hbase
+		test ec2
+
+		
