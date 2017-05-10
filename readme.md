@@ -5,6 +5,7 @@
 * Realtime prediction of comments number, up votes, down votes for posts from /r/Python, /r/RLanguage
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/dag.png?raw=true "Optional Title")
+
 #Introduction
 
 Aim of this project is to :
@@ -12,6 +13,8 @@ Aim of this project is to :
 Count words frequency grouped for each day for two subreddits.
 
 Predict number of posts comments, ups, downs.
+
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/dag.png?raw=true "Optional Title")
 
 #Data
 
