@@ -6,7 +6,7 @@
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/pythonimg.png)
 
-#Introduction
+# Introduction
 
 Why reddit :
 
@@ -24,7 +24,7 @@ Predict number of posts comments, ups, downs.
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/dag.png?raw=true "Optional Title")
 
-#Data
+# Data
 
 Historical data were downloaded and feeded into kafka, transformed with spark and saved into hbase table with.
 
@@ -64,6 +64,8 @@ Realtime data is being transformed the same way.
  </pre>
  * Python app utilizes PRAW library to subscribe on live updates from /r/Python, /r/RLanguage
  
+# Lambda architecture
+
 * **Speed Layer**: Spark Streaming is being used for the stream processing. 
   * #1 json simply saved into hbase table
   * #2 json transformed into (word,frequency) pairs that uses to increment appropriate counter in hbase table
