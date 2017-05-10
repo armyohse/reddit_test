@@ -4,7 +4,8 @@
 
 * Realtime prediction of comments number, up votes, down votes for posts from /r/Python, /r/RLanguage
 
-
+armyohse/reddit_test/blob/master/image/dag.png
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/dag.png?raw=true "Optional Title")
 #Introduction
 
 Aim of this project is to :
