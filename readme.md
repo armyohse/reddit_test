@@ -8,6 +8,14 @@
 
 #Introduction
 
+Why reddit :
+
+Most growing technology community.  
+
+Python vs R :
+
+Most hottest two language in data science community.
+
 Aim of this project is to :
 
 Count words frequency grouped for each day for two subreddits.
