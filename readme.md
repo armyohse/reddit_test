@@ -135,7 +135,6 @@ Realtime data is being transformed the same way.
   
  * #Steps for Execution
    
-  * launch production_start.sh to run hbase cluster, spark cluster nodes.
   * launch hbase_seed.py to create hbase table and fill them with initial data
   * launch kafka_reddit_historical_data.py to start downloading historical data into kafka
   * launch submit_s-p.py to start historicalStream that process and save data into hbase table 'historical_reddit'
