@@ -114,6 +114,9 @@ Realtime data is being transformed the same way.
    
 * **User Interface/Front-End**: Bokeh python library allows to display huge streaming dataset with high perfomance in web browser. 
    
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/word.png)
+
+
 
 * **Demo** 
   
