@@ -111,12 +111,25 @@ Realtime data is being transformed the same way.
              'value':predicted_targets
              }
     </pre>           
-   
+ 
 * **User Interface/Front-End**: Bokeh python library allows to display huge streaming dataset with high perfomance in web browser. 
-   
+# Screen-shot
+
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/word3.png)
 
 * **Frequent word usage**: Bokeh python library allows to display huge streaming dataset with high perfomance in web browser.
+
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/ml.png)
+
+* **Machine Learning(Prediction)**: Predict Vote up / down based on word usage compare to historical data
+
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/bokeh_plot_100vs10.png)
+
+* **Bokeh Graphic**: How many times "R language" mention in "Python subreddit", "Python" mention in "R subreddit"
+
+![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/happyword.png)
+
+* **Bokeh Graphic**: Comparing python and R frequently use "awesome", "cool", "fun", "happy", "helpful", "interesting" in their comments.
 
 * **Demo** 
   
