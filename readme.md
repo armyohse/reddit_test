@@ -129,7 +129,7 @@ Realtime data is being transformed the same way.
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/happyword.png)
 
-* **Bokeh Graphic**: Comparing python and R frequently use "awesome", "cool", "fun", "happy", "helpful", "interesting" in their comments.
+* **Bokeh Graphic**: Comparing python and R frequently word use "awesome", "cool", "fun", "happy", "helpful", "interesting" in their comments.
 
 * **Demo** 
   
@@ -142,5 +142,5 @@ Realtime data is being transformed the same way.
   * launch submit_s-p.py to start trainStream that load train ml model on historical data and save trained model in aws s3
   * launch kafka_reddit_upstream.py to start streaming data into kafka
   * launch submit_s-p.py to start upStream that process and save data into hbase table 'upstream_reddit'
-  * launch start_bokeh_server.sh to start bokeh web server with UI
+  * launch bokeh_server.py to start bokeh web server with UI
   * open http://spark_master_public_dns_name/bokeh_server to open UI
