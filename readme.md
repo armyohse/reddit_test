@@ -117,7 +117,7 @@ Realtime data is being transformed the same way.
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/word3.png)
 
-* **Frequent word usage**: Bokeh python library allows to display huge streaming dataset with high perfomance in web browser.
+* **Frequent word usage**: Realtime most frequent wors usage in subreddit.
 
 ![Alt text](https://github.com/armyohse/reddit_test/blob/master/image/ml.png)
 
